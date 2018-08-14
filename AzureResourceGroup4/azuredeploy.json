@@ -2,6 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the VM"
+      },
+      "defaultValue":  ""
+    },
+
     "_artifactsLocation": {
       "type": "string",
       "metadata": {
@@ -198,7 +206,7 @@
             "status": "Disabled",
             "timeInMinutes": 15
           },
-          "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',concat(parameters('_artifactsLocation'),copyIndex(parameters('_artifactsLocationSasToken'))))]",
+          "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]",
 
           "publisher": "Microsoft.Compute",
           "type": "JsonADDomainExtension",
@@ -414,7 +422,7 @@
               "vmSize": "[variables('sqlVmSize')]"
             },
             "osProfile": {
-              "computerName": "[variables('sqlSrvDBName')]",
+              "computerName": "[parameters('vmName')]",
               "adminUsername": "[parameters('username')]",
               "adminPassword": "[parameters('password')]"
             },
@@ -426,7 +434,7 @@
                 "version": "latest"
               },
               "osDisk": {
-                "name": "[concat(variables('sqlSrvDBName'),'_OSDisk')]",
+                "name": "[concat(parameters('vmName'),'_OSDisk')]",
                 "caching": "ReadWrite",
                 "createOption": "FromImage",
                 "managedDisk": {
