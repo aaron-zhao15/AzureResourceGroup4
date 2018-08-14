@@ -116,13 +116,13 @@
         "description": "SQL IaaS VM local administrator username"
       }
     },
-    "vmList": {
-      "type": "string",
-      "minLength": 1,
-      "metadata": {
-        "description": "List of virtual machines to be domain joined, if using multiple VMs, make their names comma separate. E.g. VM01, VM02, VM03."
-      }
-    },
+    //"vmList": {
+    //  "type": "string",
+    //  "minLength": 1,
+    //  "metadata": {
+    //    "description": "List of virtual machines to be domain joined, if using multiple VMs, make their names comma separate. E.g. VM01, VM02, VM03."
+    //  }
+    //},
     "webSrvVMSize": {
       "type": "string",
       "allowedValues": [
@@ -176,7 +176,7 @@
     "modulesUrl": "[concat(parameters('_artifactsLocation'), 'scripts/WebServerConfig.ps1.zip', parameters('_artifactsLocationSasToken'))]",
     "configurationFunction": "WebServerConfig.ps1\\WebServerConfig",
     "domainJoinOptions": 3,
-    "vmListArray": "[split(parameters('vmList'),',')]"
+    "vmListArray": "[split(parameters('vmName'),',')]"
   },
     "resources": [
       {
