@@ -50,7 +50,7 @@
       "metadata": {
         "description": "Prefix for the environment (2-5 characters)"
       },
-      "defaultValue": "test.local",
+      "defaultValue": null,
       "minLength": 2,
       "maxLength": 5
     },
