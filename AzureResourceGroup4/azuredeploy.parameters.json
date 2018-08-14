@@ -10,6 +10,12 @@
     },
     "password": {
       "value": "GEN-PASSWORD"
+    },
+    "domainJoinUserName": {
+      "value": "GEN-UNIQUE"
+    },
+    "domainJoinUserPassword": {
+      "value": "GEN-PASSWORD"
     }
   }
 }
