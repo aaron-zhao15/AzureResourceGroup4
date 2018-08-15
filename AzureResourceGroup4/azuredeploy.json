@@ -203,7 +203,7 @@
           },
           "timeZoneId": "Pacific Standard Time",
           "notificationSettings": {
-            "status": "Disabled",
+            "status": "Enabled",
             "timeInMinutes": 15
           },
           "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]",
