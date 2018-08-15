@@ -150,7 +150,7 @@
     "dbSubnetPrefix": "10.0.2.0/24",
     "feNSGName": "feNsg",
     "dbNSGName": "dbNsg",
-    "sqlSrvDBName": "[concat(parameters('envPrefixName'), 'vmName')]",
+    "sqlSrvDBName": "[concat(parameters('envPrefixName'), 'sqlSrv14')]",
     "sqlVmSize": "[parameters('sqlVMSize')]",
     "sqlSrvDBNicName": "[concat(variables('sqlSrvDBName'), 'Nic')]",
     "sqlSvrDBSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'DBSubnetName')]",
@@ -207,7 +207,7 @@
             "status": "Enabled",
             "timeInMinutes": 15
           },
-          "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]",
+          "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('envPrefixName'))]",
 
           "publisher": "Microsoft.Compute",
           "type": "JsonADDomainExtension",
@@ -406,52 +406,52 @@
             ]
           }
         },
-        {
-          "name": "[concat(parameters('envPrefixName'), 'vmName')]",
-          "type": "Microsoft.Compute/virtualMachines",
-          "location": "[parameters('location')]",
-          "apiVersion": "2017-03-30",
-          "dependsOn": [
-            "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]",
-            "[concat('Microsoft.Network/publicIPAddresses/', variables('sqlPublicIP'))]"
-          ],
-          "tags": {
-            "displayName": "SQL-Svr-DB"
-          },
-          "properties": {
-            "hardwareProfile": {
-              "vmSize": "[variables('sqlVmSize')]"
-            },
-            "osProfile": {
-              "computerName": "[parameters('vmName')]",
-              "adminUsername": "[parameters('username')]",
-              "adminPassword": "[parameters('password')]"
-            },
-            "storageProfile": {
-              "imageReference": {
-                "publisher": "[variables('sqlImagePublisher')]",
-                "offer": "[variables('sqlImageOffer')]",
-                "sku": "[variables('sqlImageSku')]",
-                "version": "latest"
-              },
-              "osDisk": {
-                "name": "[concat(parameters('vmName'),'_OSDisk')]",
-                "caching": "ReadWrite",
-                "createOption": "FromImage",
-                "managedDisk": {
-                  "storageAccountType": "[parameters('diskType')]"
-                }
-              }
-            },
-            "networkProfile": {
-              "networkInterfaces": [
-                {
-                  "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
-                }
-              ]
-            }
-          }
+      {
+        "name": "[concat(parameters('envPrefixName'), 'sqlSrv14')]",
+        "type": "Microsoft.Compute/virtualMachines",
+        "location": "[parameters('location')]",
+        "apiVersion": "2017-03-30",
+        "dependsOn": [
+          "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]",
+          "[concat('Microsoft.Network/publicIPAddresses/', variables('sqlPublicIP'))]"
+        ],
+        "tags": {
+          "displayName": "SQL-Svr-DB"
         },
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[variables('sqlVmSize')]"
+          },
+          "osProfile": {
+            "computerName": "[parameters('vmName')]",
+            "adminUsername": "[parameters('username')]",
+            "adminPassword": "[parameters('password')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "[variables('sqlImagePublisher')]",
+              "offer": "[variables('sqlImageOffer')]",
+              "sku": "[variables('sqlImageSku')]",
+              "version": "latest"
+            },
+            "osDisk": {
+              "name": "[concat(parameters('vmName'),'_OSDisk')]",
+              "caching": "ReadWrite",
+              "createOption": "FromImage",
+              "managedDisk": {
+                "storageAccountType": "[parameters('diskType')]"
+              }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
+              }
+            ]
+          }
+        }
+      },
         {
           "apiVersion": "2017-03-30",
           "type": "Microsoft.Compute/availabilitySets",
