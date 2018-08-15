@@ -7,7 +7,7 @@
       "metadata": {
         "description": "The name of the VM"
       },
-      "defaultValue":  ""
+      "defaultValue": ""
     },
 
     "_artifactsLocation": {
@@ -87,6 +87,12 @@
         "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: \"OU=testOU; DC=domain; DC=Domain; DC=com\""
       }
     },
+    "username": {
+      "type": "string",
+      "metadata": {
+        "description": "SQL IaaS VM local administrator username"
+      }
+    },
     "password": {
       "type": "securestring",
       "metadata": {
@@ -110,12 +116,7 @@
       },
       "defaultValue": "Standard_DS3"
     },
-    "username": {
-      "type": "string",
-      "metadata": {
-        "description": "SQL IaaS VM local administrator username"
-      }
-    },
+
     //"vmList": {
     //  "type": "string",
     //  "minLength": 1,
@@ -149,7 +150,7 @@
     "dbSubnetPrefix": "10.0.2.0/24",
     "feNSGName": "feNsg",
     "dbNSGName": "dbNsg",
-    "sqlSrvDBName": "[concat(parameters('envPrefixName'), 'sqlSrv14')]",
+    "sqlSrvDBName": "[concat(parameters('envPrefixName'), 'vmName')]",
     "sqlVmSize": "[parameters('sqlVMSize')]",
     "sqlSrvDBNicName": "[concat(variables('sqlSrvDBName'), 'Nic')]",
     "sqlSvrDBSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'DBSubnetName')]",
@@ -406,7 +407,7 @@
           }
         },
         {
-          "name": "[concat(parameters('envPrefixName'), 'sqlSrv14')]",
+          "name": "[concat(parameters('envPrefixName'), 'vmName')]",
           "type": "Microsoft.Compute/virtualMachines",
           "location": "[parameters('location')]",
           "apiVersion": "2017-03-30",
