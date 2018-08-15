@@ -3,25 +3,25 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "vmName": {
-      "value": "SQL"
+      "value": "GEN-UNIQUE"
     },
     "envPrefixName": {
-      "value": "TEST"
+      "value": "GEN-UNIQUE-5"
     },
     "username": {
-      "value": "Saasplaza"
+      "value": "GEN-UNIQUE"
     },
     "password": {
-      "value": "Welcome123@!"
+      "value": "GEN-PASSWORD"
     },
     "domainJoinUserName": {
-      "value": "Saas"
+      "value": "GEN-UNIQUE"
     },
     "domainJoinUserPassword": {
-      "value": "Welcome123@!"
+      "value": "GEN-PASSWORD"
     },
     "domainFQDN": {
-      "value": "test.local"
+      "value": "GEN-UNIQUE"
     }
   }
 }
