@@ -22,6 +22,12 @@
     },
     "domainFQDN": {
       "value": "GEN-UNIQUE"
+    },
+    "vnetName": {
+      "value": "Rgroup-vnet"
+    },
+    "subnetName": {
+      "value": "default"
     }
   }
 }
