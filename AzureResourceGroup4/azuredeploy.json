@@ -357,7 +357,7 @@
             },
             "subnets": [
               {
-                "name": "[parameters('subnetName')]",
+                "name": "FESubnetName",
                 "properties": {
                   "addressPrefix": "[variables('feSubnetPrefix')]",
                   "networkSecurityGroup": {
@@ -366,7 +366,7 @@
                 }
               },
               {
-                "name": "[parameters('subnetName')]",
+                "name": "DBSubnetName",
                 "properties": {
                   "addressPrefix": "[variables('dbSubnetPrefix')]",
                   "networkSecurityGroup": {
