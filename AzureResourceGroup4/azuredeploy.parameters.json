@@ -3,25 +3,32 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "vmName": {
-      "value": "GEN-UNIQUE"
+      //"value": "GEN-UNIQUE"
+      "value": "SQL"
     },
     "envPrefixName": {
-      "value": "GEN-UNIQUE-5"
+      //"value": "GEN-UNIQUE-5"
+      "value": "TEST"
     },
     "username": {
-      "value": "GEN-UNIQUE"
+      //"value": "GEN-UNIQUE"
+      "value": "Saasplaza"
     },
     "password": {
-      "value": "GEN-PASSWORD"
+      //"value": "GEN-PASSWORD"
+      "value": "Welcome123@!"
     },
     "domainJoinUserName": {
-      "value": "GEN-UNIQUE"
+      //"value": "GEN-UNIQUE"
+      "value": "Saas"
     },
     "domainJoinUserPassword": {
-      "value": "GEN-PASSWORD"
+      //"value": "GEN-PASSWORD"
+      "value": "Welcome123@!"
     },
     "domainFQDN": {
-      "value": "GEN-UNIQUE"
+      //"value": "GEN-UNIQUE"
+      "value": "test.local"
     },
     "vnetName": {
       "value": "Rgroup-vnet"
