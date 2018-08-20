@@ -338,7 +338,7 @@
             ]
           }
         },
-        /*{
+        {
           "apiVersion": "2017-06-01",
           "type": "Microsoft.Network/virtualNetworks",
           "name": "[variables('virtualNetworkName')]",
@@ -377,7 +377,7 @@
               }
             ]
           }
-        },*/
+        },
         {
           "name": "[variables('sqlPublicIP')]",
           "type": "Microsoft.Network/publicIPAddresses",
