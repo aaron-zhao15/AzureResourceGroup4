@@ -60,7 +60,8 @@ if ($UploadArtifacts) {
     }
 
     $StorageAccount = (Get-AzureRmStorageAccount | Where-Object{$_.StorageAccountName -eq $StorageAccountName})
-
+	
+	
     # Create the storage account if it doesn't already exist
     if ($StorageAccount -eq $null) {
         $StorageResourceGroupName = 'ARM_Deploy_Staging'
