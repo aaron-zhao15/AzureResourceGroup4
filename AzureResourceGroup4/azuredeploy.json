@@ -468,13 +468,13 @@
                 "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
               }
             ]
-          },
+          }/*,
           "diagnosticsProfile": {
             "bootDiagnostics": {
               "enabled": true,
               "storageUri": "[reference(variables('diagStorageAccountName')).primaryEndpoints.blob]"
             }
-          }
+          }*/
         }
       },
         {
