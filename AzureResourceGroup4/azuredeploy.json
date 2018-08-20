@@ -214,7 +214,7 @@
         "condition": "[equals(parameters('vNetNewOrExisting'), 'new')]",
         "apiVersion": "2015-06-15",
         "type": "Microsoft.Network/virtualNetworks",
-        "name": "[parameters('virtualNetworkName')]",
+        "name": "[variables('virtualNetworkName')]",
         "location": "[parameters('location')]",
         "properties": {
           "addressSpace": {
