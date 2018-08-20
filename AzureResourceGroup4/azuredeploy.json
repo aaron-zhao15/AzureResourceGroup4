@@ -172,7 +172,7 @@
     "sqlSrvDBName": "[concat(parameters('envPrefixName'), 'sqlSrv14')]",
     "sqlVmSize": "[parameters('sqlVMSize')]",
     "sqlSrvDBNicName": "[concat(variables('sqlSrvDBName'), 'Nic')]",
-    "sqlSvrDBSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnet', variables('virtualNetworkName'), parameters('subnetName')]",
+    "sqlSvrDBSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnet', variables('virtualNetworkName'), parameters('subnetName'))]",
     "sqlPublicIP": "[concat(parameters('envPrefixName'), 'SqlPip')]",
     "sqlPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses', variables('sqlPublicIP'))]",
     "sqlImagePublisher": "MicrosoftSQLServer",
