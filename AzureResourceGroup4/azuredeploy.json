@@ -63,6 +63,17 @@
       "minLength": 2,
       "maxLength": 5
     },
+    "vNetNewOrExisting": {
+      "type": "string",
+      "defaultValue": "new",
+      "allowedValues": [
+        "new",
+        "existing"
+      ],
+      "metadata": {
+        "description": "Specify whether to create a new or existing virtual network for the VM."
+      }
+    },
     "vnetName": {
       "type": "string",
       "metadata": {
@@ -200,7 +211,28 @@
   },
     "resources": [
       {
-
+        "condition": "[equals(parameters('vNetNewOrExisting'), 'new')]",
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[parameters('virtualNetworkName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "10.0.0.0/16"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[parameters('subnetName')]",
+              "properties": {
+                "addressPrefix": "10.0.0.0/24"
+              }
+            }
+          ]
+        }
+      },
+      {
         "apiVersion": "2015-06-15",
         "type": "Microsoft.Network/networkSecurityGroups",
         "name": "[variables('feNSGName')]",
