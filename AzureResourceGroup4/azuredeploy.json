@@ -675,16 +675,6 @@
         "displayName": "WebSrv"
       },
       "properties": {
-        "status": "Enabled",
-        "taskType": "ComputeVmShutdownTask",
-        "dailyRecurrence": {
-          "time": "1700"
-        },
-        "timeZoneId": "Pacific Standard Time",
-        "notificationSettings": {
-          "status": "Enabled",
-          "timeInMinutes": 15
-        },
         "availabilitySet": {
           "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('webSrvAvailabilitySetName'))]"
         },
@@ -719,6 +709,28 @@
             }
           ]
         }
+      }
+    },
+    {
+      "type": "Microsoft.DevTestLab/labs/schedules",
+      "name": "shutdown-computevm-mydockervm",
+      "apiVersion": "2016-05-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+      ],
+      "properties": {
+        "status": "Enabled",
+        "taskType": "ComputeVmShutdownTask",
+        "dailyRecurrence": {
+          "time": "1700"
+        },
+        "timeZoneId": "Pacific Standard Time",
+        "notificationSettings": {
+          "status": "Enabled",
+          "timeInMinutes": 15
+        },
+        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('vmName'))]"
       }
     }
   ]
