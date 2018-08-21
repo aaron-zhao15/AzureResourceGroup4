@@ -279,24 +279,13 @@
       "tags": {
         "displayName": "FrontEndNSG"
       },
-
+      
       "comments": "Join domain - JsonADDomainExtension",
       "copy": {
         "name": "vmDomainJoinCopy",
         "count": "[length(variables('vmListArray'))]"
       },
-
-      "properties": {
-        "status": "Enabled",
-        "taskType": "ComputeVmShutdownTask",
-        "dailyRecurrence": {
-          "time": "1700"
-        },
-        "timeZoneId": "Pacific Standard Time",
-        "notificationSettings": {
-          "status": "Enabled",
-          "timeInMinutes": 15
-        },
+      /*
         "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('envPrefixName'))]",
 
         "publisher": "Microsoft.Compute",
@@ -313,38 +302,39 @@
         "protectedSettings": {
           "Password": "[parameters('domainJoinUserPassword')]"
         },
-
-        "securityRules": [
-          {
-            "name": "rdp_rule",
-            "properties": {
-              "description": "Allow RDP",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "3389",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 100,
-              "direction": "Inbound"
-            }
-          },
-          {
-            "name": "web_rule",
-            "properties": {
-              "description": "Allow WEB",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "80",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 101,
-              "direction": "Inbound"
-            }
+      */
+        {
+      "securityRules": [
+        {
+          "name": "rdp_rule",
+          "properties": {
+            "description": "Allow RDP",
+            "protocol": "Tcp",
+            "sourcePortRange": "*",
+            "destinationPortRange": "3389",
+            "sourceAddressPrefix": "Internet",
+            "destinationAddressPrefix": "*",
+            "access": "Allow",
+            "priority": 100,
+            "direction": "Inbound"
           }
-        ]
-      }
+        },
+        {
+          "name": "web_rule",
+          "properties": {
+            "description": "Allow WEB",
+            "protocol": "Tcp",
+            "sourcePortRange": "*",
+            "destinationPortRange": "80",
+            "sourceAddressPrefix": "Internet",
+            "destinationAddressPrefix": "*",
+            "access": "Allow",
+            "priority": 101,
+            "direction": "Inbound"
+          }
+        }
+      ]
+    }
     },
     {
       "type": "Microsoft.Network/networkSecurityGroups",
