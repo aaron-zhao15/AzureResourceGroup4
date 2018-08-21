@@ -759,7 +759,7 @@
           ]
         }
       }
-    },
+    }/*,
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('webSrvName'), copyindex(),'/', variables('vmExtensionName'))]",
@@ -789,6 +789,6 @@
         },
         "protectedSettings": {}
       }
-    }
+    }*/
   ]
 }
