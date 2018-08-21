@@ -42,6 +42,12 @@
         "description": "Domain FQDN where the virtual machine will be joined"
       }
     },
+    "domainJoinName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the domain VM"
+      }
+    },
     "domainJoinUserName": {
       "type": "string",
       "metadata": {
@@ -210,174 +216,206 @@
     "domainJoinOptions": 3,
     "vmListArray": "[split(parameters('vmName'),',')]"
   },
-    "resources": [
-      {
-        "condition": "[equals(parameters('vNetNewOrExisting'), 'new')]",
-        "apiVersion": "2015-06-15",
-        "type": "Microsoft.Network/virtualNetworks",
-        "name": "[variables('virtualNetworkName')]",
-        "location": "[parameters('location')]",
-        "properties": {
-          "addressSpace": {
-            "addressPrefixes": [
-              "10.0.0.0/16"
-            ]
-          },
-          "subnets": [
-            {
-              "name": "[parameters('subnetName')]",
-              "properties": {
-                "addressPrefix": "10.0.0.0/24"
-              }
-            }
+  "resources": [
+    {
+      "condition": "[equals(parameters('vNetNewOrExisting'), 'new')]",
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
           ]
-        }
-      },
-      {
-        "apiVersion": "2015-06-15",
-        "type": "Microsoft.Network/networkSecurityGroups",
-        "name": "[variables('feNSGName')]",
-        "location": "[parameters('location')]",
-        "tags": {
-          "displayName": "FrontEndNSG"
         },
-
-        "comments": "Join domain - JsonADDomainExtension",
-        "copy": {
-          "name": "vmDomainJoinCopy",
-          "count": "[length(variables('vmListArray'))]"
-        },
-
-        "properties": {
-          "status": "Enabled",
-          "taskType": "ComputeVmShutdownTask",
-          "dailyRecurrence": {
-            "time": "1700"
-          },
-          "timeZoneId": "Pacific Standard Time",
-          "notificationSettings": {
-            "status": "Enabled",
-            "timeInMinutes": 15
-          },
-          "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('envPrefixName'))]",
-
-          "publisher": "Microsoft.Compute",
-          "type": "JsonADDomainExtension",
-          "typeHandlerVersion": "1.3",
-          "autoUpgradeMinorVersion": true,
-          "settings": {
-            "Name": "[parameters('domainFQDN')]",
-            "User": "[parameters('domainJoinUserName')]",
-            "Restart": "true",
-            "Options": "[variables('domainJoinOptions')]",
-            "OUPath": "[parameters('ouPath')]"
-          },
-          "protectedSettings": {
-            "Password": "[parameters('domainJoinUserPassword')]"
-          },
-
-          "securityRules": [
-            {
-              "name": "rdp_rule",
-              "properties": {
-                "description": "Allow RDP",
-                "protocol": "Tcp",
-                "sourcePortRange": "*",
-                "destinationPortRange": "3389",
-                "sourceAddressPrefix": "Internet",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 100,
-                "direction": "Inbound"
-              }
-            },
-            {
-              "name": "web_rule",
-              "properties": {
-                "description": "Allow WEB",
-                "protocol": "Tcp",
-                "sourcePortRange": "*",
-                "destinationPortRange": "80",
-                "sourceAddressPrefix": "Internet",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 101,
-                "direction": "Inbound"
-              }
+        "subnets": [
+          {
+            "name": "[parameters('subnetName')]",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
             }
-          ]
-        }
-      },
-        {
-          "type": "Microsoft.Network/networkSecurityGroups",
-          "apiVersion": "2015-06-15",
-          "name": "[variables('dbNSGName')]",
-          "location": "[parameters('location')]",
-          "tags": {
-            "displayName": "BackEndNSG"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2017-12-01",
+      "dependsOn": [ "[parameters('vmName')]" ],
+      "location": "[resourceGroup().location]",
+      "name": "[concat(parameters('vmName'),'/ADJoin')]",
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.76",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "configuration": {
+            "url": "https://github.com/aaron-zhao15/AzureResourceGroup4/blob/master/SQLServerConnect.ps1.zip?raw=true",
+            "script": "ADJoin.ps1",
+            "function": "ADJoin"
           },
           "properties": {
-            "securityRules": [
-              {
-                "name": "Allow_FE",
-                "properties": {
-                  "description": "Allow FE Subnet",
-                  "protocol": "Tcp",
-                  "sourcePortRange": "*",
-                  "destinationPortRange": "1433",
-                  "sourceAddressPrefix": "10.0.0.0/24",
-                  "destinationAddressPrefix": "*",
-                  "access": "Allow",
-                  "priority": 100,
-                  "direction": "Inbound"
-                }
-              },
-              {
-                "name": "rdp_rule",
-                "properties": {
-                  "description": "Allow RDP",
-                  "protocol": "Tcp",
-                  "sourcePortRange": "*",
-                  "destinationPortRange": "3389",
-                  "sourceAddressPrefix": "Internet",
-                  "destinationAddressPrefix": "*",
-                  "access": "Allow",
-                  "priority": 110,
-                  "direction": "Inbound"
-                }
-              },
-              {
-                "name": "Block_FE",
-                "properties": {
-                  "description": "Block App Subnet",
-                  "protocol": "*",
-                  "sourcePortRange": "*",
-                  "destinationPortRange": "*",
-                  "sourceAddressPrefix": "10.0.0.0/24",
-                  "destinationAddressPrefix": "*",
-                  "access": "Deny",
-                  "priority": 121,
-                  "direction": "Inbound"
-                }
-              },
-              {
-                "name": "Block_Internet",
-                "properties": {
-                  "description": "Block Internet",
-                  "protocol": "*",
-                  "sourcePortRange": "*",
-                  "destinationPortRange": "*",
-                  "sourceAddressPrefix": "*",
-                  "destinationAddressPrefix": "Internet",
-                  "access": "Deny",
-                  "priority": 200,
-                  "direction": "Outbound"
-                }
-              }
-            ]
+            "DomainName": "[parameters('domainJoinName')]",
+            "Admincreds": {
+              "UserName": "[parameters('domainJoinUserName')]",
+              "Password": "privateSettingsRef:adminPassword"
+            }
           }
         },
-        /*{
+        "protectedSettings": {
+          "Items": {
+            "AdminPassword": "[parameters('domainJoinUserPassword')]"
+          }
+        }
+      },
+      "type": "Microsoft.Compute/virtualMachines/extensions"
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('feNSGName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "displayName": "FrontEndNSG"
+      },
+
+      "comments": "Join domain - JsonADDomainExtension",
+      "copy": {
+        "name": "vmDomainJoinCopy",
+        "count": "[length(variables('vmListArray'))]"
+      },
+
+      "properties": {
+        "status": "Enabled",
+        "taskType": "ComputeVmShutdownTask",
+        "dailyRecurrence": {
+          "time": "1700"
+        },
+        "timeZoneId": "Pacific Standard Time",
+        "notificationSettings": {
+          "status": "Enabled",
+          "timeInMinutes": 15
+        },
+        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',parameters('envPrefixName'))]",
+
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "[parameters('domainFQDN')]",
+          "User": "[parameters('domainJoinUserName')]",
+          "Restart": "true",
+          "Options": "[variables('domainJoinOptions')]",
+          "OUPath": "[parameters('ouPath')]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('domainJoinUserPassword')]"
+        },
+
+        "securityRules": [
+          {
+            "name": "rdp_rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "web_rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "name": "[variables('dbNSGName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "displayName": "BackEndNSG"
+      },
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow_FE",
+            "properties": {
+              "description": "Allow FE Subnet",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "1433",
+              "sourceAddressPrefix": "10.0.0.0/24",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "rdp_rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 110,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Block_FE",
+            "properties": {
+              "description": "Block App Subnet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "10.0.0.0/24",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 121,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Block_Internet",
+            "properties": {
+              "description": "Block Internet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "Internet",
+              "access": "Deny",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    /*{
           "apiVersion": "2017-06-01",
           "type": "Microsoft.Network/virtualNetworks",
           "name": "[variables('virtualNetworkName')]",
@@ -417,340 +455,340 @@
             ]
           }
         },*/
-        {
-          "name": "[variables('sqlPublicIP')]",
-          "type": "Microsoft.Network/publicIPAddresses",
-          "location": "[parameters('location')]",
-          "apiVersion": "2015-06-15",
-          "tags": {
-            "displayName": "SqlPIP"
-          },
-          "properties": {
-            "publicIPAllocationMethod": "Dynamic",
-            "idleTimeoutInMinutes": 4
-          }
-        },
-        {
-          "name": "[variables('sqlSrvDBNicName')]",
-          "type": "Microsoft.Network/networkInterfaces",
-          "location": "[parameters('location')]",
-          "apiVersion": "2015-06-15",
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-          ],
-          "tags": {
-            "displayName": "SQLSrvDBNic"
-          },
-          "properties": {
-            "ipConfigurations": [
-              {
-                "name": "ipconfig1",
-                "properties": {
-                  "privateIPAllocationMethod": "Dynamic",
-                  "subnet": {
-                    "id": "[variables('sqlSvrDBSubnetRef')]"
-                  },
-                  "publicIPAddress": {
-                    "id": "[variables('sqlPublicIPRef')]"
-                  }
-                }
-              }
-            ]
-          }
-        },
-      {
-        "name": "[parameters('vmName')]",
-        "type": "Microsoft.Compute/virtualMachines",
-        "location": "[parameters('location')]",
-        "apiVersion": "2017-03-30",
-        "dependsOn": [
-          "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]",
-          "[concat('Microsoft.Network/publicIPAddresses/', variables('sqlPublicIP'))]"
-        ],
-        "tags": {
-          "displayName": "SQL-Svr-DB"
-        },
-        "properties": {
-          "hardwareProfile": {
-            "vmSize": "[variables('sqlVmSize')]"
-          },
-          "osProfile": {
-            "computerName": "[parameters('vmName')]",
-            "adminUsername": "[parameters('username')]",
-            "adminPassword": "[parameters('password')]"
-          },
-          "storageProfile": {
-            "imageReference": {
-              "publisher": "[variables('sqlImagePublisher')]",
-              "offer": "[variables('sqlImageOffer')]",
-              "sku": "[variables('sqlImageSku')]",
-              "version": "latest"
-            },
-            "osDisk": {
-              "name": "[concat(parameters('vmName'),'_OSDisk')]",
-              "caching": "ReadWrite",
-              "createOption": "FromImage",
-              "managedDisk": {
-                "storageAccountType": "[parameters('diskType')]"
+    {
+      "name": "[variables('sqlPublicIP')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[parameters('location')]",
+      "apiVersion": "2015-06-15",
+      "tags": {
+        "displayName": "SqlPIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4
+      }
+    },
+    {
+      "name": "[variables('sqlSrvDBNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "tags": {
+        "displayName": "SQLSrvDBNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('sqlSvrDBSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[variables('sqlPublicIPRef')]"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('vmName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[parameters('location')]",
+      "apiVersion": "2017-03-30",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('sqlSrvDBNicName'))]",
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('sqlPublicIP'))]"
+      ],
+      "tags": {
+        "displayName": "SQL-Svr-DB"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('sqlVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('username')]",
+          "adminPassword": "[parameters('password')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('sqlImagePublisher')]",
+            "offer": "[variables('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSku')]",
+            "version": "latest"
           },
-          "networkProfile": {
-            "networkInterfaces": [
-              {
-                "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
-              }
-            ]
-          }/*,
+          "osDisk": {
+            "name": "[concat(parameters('vmName'),'_OSDisk')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('diskType')]"
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('sqlSrvDBNicName'))]"
+            }
+          ]
+        } /*,
           "diagnosticsProfile": {
             "bootDiagnostics": {
               "enabled": true,
               "storageUri": "[reference(variables('diagStorageAccountName')).primaryEndpoints.blob]"
             }
           }*/
-        }
+      }
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[parameters('location')]",
+      "name": "[variables('webSrvAvailabilitySetName')]",
+      "properties": {
+        "PlatformUpdateDomainCount": 20,
+        "PlatformFaultDomainCount": 2
       },
-        {
-          "apiVersion": "2017-03-30",
-          "type": "Microsoft.Compute/availabilitySets",
-          "location": "[parameters('location')]",
-          "name": "[variables('webSrvAvailabilitySetName')]",
-          "properties": {
-            "PlatformUpdateDomainCount": 20,
-            "PlatformFaultDomainCount": 2
-          },
-          "tags": {
-            "displayName": "WebSrvAvailabilitySet"
-          },
-          "sku": {
-            "name": "Aligned"
-          }
-        },
-        {
-          "name": "[variables('webSrvPublicIP')]",
-          "type": "Microsoft.Network/publicIPAddresses",
-          "location": "[parameters('location')]",
-          "apiVersion": "2015-06-15",
-          "tags": {
-            "displayName": "WebSrvPIP for LB"
-          },
-          "properties": {
-            "publicIPAllocationMethod": "Dynamic",
-            "idleTimeoutInMinutes": 4,
-            "dnsSettings": {
-              "domainNameLabel": "[variables('webSrvDnsNameforLBIP')]"
+      "tags": {
+        "displayName": "WebSrvAvailabilitySet"
+      },
+      "sku": {
+        "name": "Aligned"
+      }
+    },
+    {
+      "name": "[variables('webSrvPublicIP')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[parameters('location')]",
+      "apiVersion": "2015-06-15",
+      "tags": {
+        "displayName": "WebSrvPIP for LB"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4,
+        "dnsSettings": {
+          "domainNameLabel": "[variables('webSrvDnsNameforLBIP')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('webLbName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[parameters('location')]",
+      "tags": {
+        "displayName": "Web LB"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('webSrvPublicIP'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontEnd",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[variables('webLblb_PIP_Id')]"
+              }
             }
           }
-        },
-        {
-          "apiVersion": "2015-06-15",
-          "name": "[variables('webLbName')]",
-          "type": "Microsoft.Network/loadBalancers",
-          "location": "[parameters('location')]",
-          "tags": {
-            "displayName": "Web LB"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.Network/publicIPAddresses/', variables('webSrvPublicIP'))]"
-          ],
-          "properties": {
-            "frontendIPConfigurations": [
-              {
-                "name": "LoadBalancerFrontEnd",
-                "properties": {
-                  "publicIPAddress": {
-                    "id": "[variables('webLblb_PIP_Id')]"
-                  }
-                }
-              }
-            ],
-            "backendAddressPools": [
-              {
-                "name": "BackendPool1"
-              }
-            ],
-            "inboundNatRules": [
-              {
-                "name": "RDP-VM0",
-                "properties": {
-                  "frontendIPConfiguration": {
-                    "id": "[variables('frontEndIPConfigID')]"
-                  },
-                  "protocol": "Tcp",
-                  "frontendPort": 50001,
-                  "backendPort": 3389,
-                  "enableFloatingIP": false
-                }
-              },
-              {
-                "name": "RDP-VM1",
-                "properties": {
-                  "frontendIPConfiguration": {
-                    "id": "[variables('frontEndIPConfigID')]"
-                  },
-                  "protocol": "Tcp",
-                  "frontendPort": 50002,
-                  "backendPort": 3389,
-                  "enableFloatingIP": false
-                }
-              }
-            ],
-            "loadBalancingRules": [
-              {
-                "name": "LBRule",
-                "properties": {
-                  "frontendIPConfiguration": {
-                    "id": "[variables('frontEndIPConfigID')]"
-                  },
-                  "backendAddressPool": {
-                    "id": "[variables('lbPoolID')]"
-                  },
-                  "protocol": "Tcp",
-                  "frontendPort": 80,
-                  "backendPort": 80,
-                  "enableFloatingIP": false,
-                  "idleTimeoutInMinutes": 5,
-                  "probe": {
-                    "id": "[variables('lbProbeID')]"
-                  }
-                }
-              }
-            ],
-            "probes": [
-              {
-                "name": "tcpProbe",
-                "properties": {
-                  "protocol": "Tcp",
-                  "port": 80,
-                  "intervalInSeconds": 5,
-                  "numberOfProbes": 2
-                }
-              }
-            ]
+        ],
+        "backendAddressPools": [
+          {
+            "name": "BackendPool1"
           }
-        },
-        {
-          "name": "[concat(variables('webSrvNicName'), copyindex())]",
-          "type": "Microsoft.Network/networkInterfaces",
-          "location": "[parameters('location')]",
-          "apiVersion": "2015-06-15",
-          "copy": {
-            "name": "nicLoop",
-            "count": "[variables('webSrvNumbOfInstances')]"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
-            "[concat('Microsoft.Network/loadBalancers/', variables('webLbName'))]"
-          ],
-          "tags": {
-            "displayName": "WebSrvNic"
-          },
-          "properties": {
-            "ipConfigurations": [
-              {
-                "name": "ipconfig1",
-                "properties": {
-                  "privateIPAllocationMethod": "Dynamic",
-                  "subnet": {
-                    "id": "[variables('webSrvSubnetRef')]"
-                  },
-                  "loadBalancerBackendAddressPools": [
-                    {
-                      "id": "[concat(variables('webLbId'), '/backendAddressPools/BackendPool1')]"
-                    }
-                  ],
-                  "loadBalancerInboundNatRules": [
-                    {
-                      "id": "[concat(variables('webLbId'),'/inboundNatRules/RDP-VM', copyindex())]"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "name": "[concat(variables('webSrvName'), copyindex())]",
-          "type": "Microsoft.Compute/virtualMachines",
-          "location": "[parameters('location')]",
-          "apiVersion": "2017-03-30",
-          "copy": {
-            "name": "webSrvMachineLoop",
-            "count": "[variables('webSrvNumbOfInstances')]"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.Network/networkInterfaces/', variables('webSrvNicName'), copyindex())]",
-            "[concat('Microsoft.Compute/availabilitySets/', variables('webSrvAvailabilitySetName'))]"
-          ],
-          "tags": {
-            "displayName": "WebSrv"
-          },
-          "properties": {
-            "availabilitySet": {
-              "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('webSrvAvailabilitySetName'))]"
-            },
-            "hardwareProfile": {
-              "vmSize": "[variables('webSrvVMSize')]"
-            },
-            "osProfile": {
-              "computerName": "[concat(variables('webSrvName'),copyindex())]",
-              "adminUsername": "[parameters('username')]",
-              "adminPassword": "[parameters('password')]"
-            },
-            "storageProfile": {
-              "imageReference": {
-                "publisher": "MicrosoftWindowsServer",
-                "offer": "WindowsServer",
-                "sku": "2012-R2-Datacenter",
-                "version": "latest"
+        ],
+        "inboundNatRules": [
+          {
+            "name": "RDP-VM0",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
               },
-              "osDisk": {
-                "name": "[concat(concat(variables('webSrvName'),copyindex(),'_OSDisk'))]",
-                "caching": "ReadWrite",
-                "createOption": "FromImage",
-                "managedDisk": {
-                  "storageAccountType": "[parameters('diskType')]"
-                }
+              "protocol": "Tcp",
+              "frontendPort": 50001,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          },
+          {
+            "name": "RDP-VM1",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 50002,
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "LBRule",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('frontEndIPConfigID')]"
+              },
+              "backendAddressPool": {
+                "id": "[variables('lbPoolID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[variables('lbProbeID')]"
               }
-            },
-            "networkProfile": {
-              "networkInterfaces": [
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "tcpProbe",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 80,
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('webSrvNicName'), copyindex())]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[parameters('location')]",
+      "apiVersion": "2015-06-15",
+      "copy": {
+        "name": "nicLoop",
+        "count": "[variables('webSrvNumbOfInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+        "[concat('Microsoft.Network/loadBalancers/', variables('webLbName'))]"
+      ],
+      "tags": {
+        "displayName": "WebSrvNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('webSrvSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
                 {
-                  "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webSrvNicName'), copyindex()))]"
+                  "id": "[concat(variables('webLbId'), '/backendAddressPools/BackendPool1')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('webLbId'),'/inboundNatRules/RDP-VM', copyindex())]"
                 }
               ]
             }
           }
-        },
-        {
-          "type": "Microsoft.Compute/virtualMachines/extensions",
-          "name": "[concat(variables('webSrvName'), copyindex(),'/', variables('vmExtensionName'))]",
-          "apiVersion": "2015-06-15",
-          "location": "[parameters('location')]",
-          "copy": {
-            "name": "webSrvMachineLoop",
-            "count": "[variables('webSrvNumbOfInstances')]"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', variables('webSrvName'), copyindex())]"
-          ],
-          "tags": {
-            "displayName": "VM Extensions"
-          },
-          "properties": {
-            "publisher": "Microsoft.Powershell",
-            "type": "DSC",
-            "typeHandlerVersion": "2.19",
-            "autoUpgradeMinorVersion": true,
-            "settings": {
-              "modulesUrl": "[variables('modulesUrl')]",
-              "SasToken": "",
-              "configurationFunction": "[variables('configurationFunction')]",
-              "wmfVersion": "4.0",
-              "Properties": {}
-            },
-            "protectedSettings": {}
-          }
-        }
         ]
       }
+    },
+    {
+      "name": "[concat(variables('webSrvName'), copyindex())]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[parameters('location')]",
+      "apiVersion": "2017-03-30",
+      "copy": {
+        "name": "webSrvMachineLoop",
+        "count": "[variables('webSrvNumbOfInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('webSrvNicName'), copyindex())]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('webSrvAvailabilitySetName'))]"
+      ],
+      "tags": {
+        "displayName": "WebSrv"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('webSrvAvailabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[variables('webSrvVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('webSrvName'),copyindex())]",
+          "adminUsername": "[parameters('username')]",
+          "adminPassword": "[parameters('password')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2012-R2-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(concat(variables('webSrvName'),copyindex(),'_OSDisk'))]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('diskType')]"
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('webSrvNicName'), copyindex()))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('webSrvName'), copyindex(),'/', variables('vmExtensionName'))]",
+      "apiVersion": "2015-06-15",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "webSrvMachineLoop",
+        "count": "[variables('webSrvNumbOfInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('webSrvName'), copyindex())]"
+      ],
+      "tags": {
+        "displayName": "VM Extensions"
+      },
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.19",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "modulesUrl": "[variables('modulesUrl')]",
+          "SasToken": "",
+          "configurationFunction": "[variables('configurationFunction')]",
+          "wmfVersion": "4.0",
+          "Properties": {}
+        },
+        "protectedSettings": {}
+      }
+    }
+  ]
+}
