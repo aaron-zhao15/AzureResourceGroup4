@@ -708,7 +708,9 @@
           ]
         }
       }
-    },
+    } /*,
+    
+    
     {
       "type": "Microsoft.DevTestLab/labs/schedules",
       "name": "shutdown-computevm-mydockervm",
@@ -731,7 +733,7 @@
         },
         "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
       }
-    }
+    }*/
   ]
 }
 
