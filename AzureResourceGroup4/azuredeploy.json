@@ -715,7 +715,7 @@
       "apiVersion": "2016-05-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
       ],
       "properties": {
         "status": "Enabled",
@@ -728,7 +728,7 @@
           "status": "Enabled",
           "timeInMinutes": 15
         },
-        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('vmName'))]"
+        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
       }
     }
   ]
