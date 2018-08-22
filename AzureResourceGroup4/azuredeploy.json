@@ -167,13 +167,6 @@
         "description": "The size of the Web Server VMs Created"
       },
       "defaultValue": "Standard_DS1"
-    },
-    "numerationOfVMs": {
-      "type": "int",
-      "metadata": {
-        "description": "Number of VMs"
-      },
-      "defaultValue": 1
     }
   },
 
@@ -717,25 +710,26 @@
       }
     },
     {
-      "apiVersion": "[providers('Microsoft.DevTestLab','labs').apiVersions[0]]",
-      "type": "microsoft.devtestlab/schedules",
-      "name": "[concat('shutdown-computevm-',parameters('vmName'),copyIndex(parameters('numerationOfVMs')))]",
+      "type": "Microsoft.DevTestLab/labs/schedules",
+      "name": "shutdown-computevm-mydockervm",
+      "apiVersion": "2016-05-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/',concat(parameters('vmName'),copyIndex(parameters('numerationOfVMs'))))]"
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
       ],
       "properties": {
         "status": "Enabled",
         "taskType": "ComputeVmShutdownTask",
         "dailyRecurrence": {
-          "time": "1900"
+          "time": "1700"
         },
-        "timeZoneId": "W. Europe Standard Time",
+        "timeZoneId": "Pacific Standard Time",
         "notificationSettings": {
-          "status": "Disabled",
-          "timeInMinutes": 15
+          "status": "Enabled",
+          "timeInMinutes": 15,
+          "webhookUrl": "http://sjkp.dk"
         },
-        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',concat(parameters('vmName'),copyIndex(parameters('numerationOfVMs'))))]"
+        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('vmName'))]"
       }
     }
   ]
